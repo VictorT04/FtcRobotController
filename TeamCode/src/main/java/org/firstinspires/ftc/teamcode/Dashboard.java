@@ -17,6 +17,11 @@ public class Dashboard extends BlocksOpModeCompanion {
 
     public static ArrayList<Double> infiniteTelemetry = new ArrayList<>();
 
+    public static float ServoLeft = 0;
+
+    public static float ServoRight = 0;
+
+    public static float ServoOpen = 0;
 
 
     @ExportToBlocks(
@@ -28,6 +33,7 @@ public class Dashboard extends BlocksOpModeCompanion {
         infiniteTelemetry.clear();
         TelemetryPacket packet = new TelemetryPacket();
     }
+
     @ExportToBlocks(
             parameterLabels = {"key", "text"}
     )
@@ -39,7 +45,7 @@ public class Dashboard extends BlocksOpModeCompanion {
             parameterLabels = {}
     )
     public static void TelemetryUpdate() {
-        telemetry.addData("size",infiniteTelemetry.size());
+        telemetry.addData("size", infiniteTelemetry.size());
         telemetry.update();
     }
 
@@ -52,21 +58,43 @@ public class Dashboard extends BlocksOpModeCompanion {
 
 
     @ExportToBlocks(
-            parameterLabels = {"X", "Y","orientation"}
+            parameterLabels = {"X", "Y", "orientation"}
     )
-    public static void Trajectory(double X, double Y,double orientation) {
+    public static void Trajectory(double X, double Y, double orientation) {
         TelemetryPacket packetPos = new TelemetryPacket();
 
         packetPos.fieldOverlay()
-                .drawImage("/robot.png", X/ 2.54+9, -Y / 2.54 + 135, 18, 18,Math.toRadians(orientation-90),9,9 ,true);
+                .drawImage("/robot.png", X / 2.54 + 9, -Y / 2.54 + 135, 18, 18, Math.toRadians(orientation - 90), 9, 9, true);
         infiniteTelemetry.add(Y);
         infiniteTelemetry.add(-X);
         for (int count = 0; count < infiniteTelemetry.size(); count += 2) {
             packetPos.fieldOverlay()
                     .setFill("blue")
-                    .fillCircle(infiniteTelemetry.get(count) / 2.54 - 63, (infiniteTelemetry.get(count + 1)) / 2.54 + 63,0.5);
+                    .fillCircle(infiniteTelemetry.get(count) / 2.54 - 63, (infiniteTelemetry.get(count + 1)) / 2.54 + 63, 0.5);
         }
         dashboard.sendTelemetryPacket(packetPos);
     }
 
+    @ExportToBlocks(
+            parameterLabels = {}
+    )
+    public static float GetLeft() {
+        return ServoLeft;
+    }
+
+    @ExportToBlocks(
+            parameterLabels = {}
+    )
+    public static float GetRight() {
+        return ServoRight;
+    }
+
+
+    @ExportToBlocks(
+            parameterLabels = {}
+    )
+    public static float GetOpen() {
+        return ServoOpen;
+    }
 }
+
