@@ -15,13 +15,15 @@ import java.util.ArrayList;
 public class Dashboard extends BlocksOpModeCompanion {
     static FtcDashboard dashboard;
 
-    public static ArrayList<Double> infiniteTelemetry = new ArrayList<>();
+    public static ArrayList<Double> RobotTrajectory = new ArrayList<>();
 
-    public static float ServoLeft = 0;
+    public static ArrayList<Double> PerfectTrajectory = new ArrayList<>(), TargetRobot = new ArrayList<>();
 
-    public static float ServoRight = 0;
+    public static float ServoLeft = 0, ServoRight = 0,ServoOpen = 0;
 
-    public static float ServoOpen = 0;
+    public static double startedX, startedY;
+
+    public static boolean RobotImage = true;
 
 
     @ExportToBlocks(
@@ -30,8 +32,9 @@ public class Dashboard extends BlocksOpModeCompanion {
     public static void InitDashboard() {
         dashboard = FtcDashboard.getInstance();
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-        infiniteTelemetry.clear();
-        TelemetryPacket packet = new TelemetryPacket();
+        RobotTrajectory.clear();
+        PerfectTrajectory.clear();
+        //TelemetryPacket packet = new TelemetryPacket();
     }
 
     @ExportToBlocks(
@@ -45,7 +48,7 @@ public class Dashboard extends BlocksOpModeCompanion {
             parameterLabels = {}
     )
     public static void TelemetryUpdate() {
-        telemetry.addData("size", infiniteTelemetry.size());
+        telemetry.addData("size", RobotTrajectory.size());
         telemetry.update();
     }
 
@@ -63,15 +66,30 @@ public class Dashboard extends BlocksOpModeCompanion {
     public static void Trajectory(double X, double Y, double orientation) {
         TelemetryPacket packetPos = new TelemetryPacket();
 
-        packetPos.fieldOverlay()
-                .drawImage("/robot.png", X / 2.54 + 9, -Y / 2.54 + 135, 18, 18, Math.toRadians(orientation - 90), 9, 9, true);
-        infiniteTelemetry.add(Y);
-        infiniteTelemetry.add(-X);
-        for (int count = 0; count < infiniteTelemetry.size(); count += 2) {
+        if (RobotImage)
+        {
+            packetPos.fieldOverlay()
+                    .drawImage("/Robot.png", X / 2.54 + 9 + startedX, -Y / 2.54 + 135 - startedY, 18, 18, Math.toRadians(orientation - 90), 9, 9, true);
+
+            packetPos.fieldOverlay()
+                    .drawImage("/TargetRobot.png",TargetRobot.get(0), TargetRobot.get(1), 18, 18, Math.toRadians(orientation - 90), 9, 9, true);
+        }
+
+        RobotTrajectory.add(ToDashboardCoordinate(Y,'Y'));
+        RobotTrajectory.add(ToDashboardCoordinate(X,'X'));
+
+        for (int count = 0; count < RobotTrajectory.size(); count += 2) {
             packetPos.fieldOverlay()
                     .setFill("blue")
-                    .fillCircle(infiniteTelemetry.get(count) / 2.54 - 63, (infiniteTelemetry.get(count + 1)) / 2.54 + 63, 0.5);
+                    .fillCircle(RobotTrajectory.get(count), RobotTrajectory.get(count + 1), 0.5);
         }
+
+        for (int count = 0; count < PerfectTrajectory.size(); count += 2) {
+            packetPos.fieldOverlay()
+                    .setFill("green")
+                    .fillCircle(PerfectTrajectory.get(count), PerfectTrajectory.get(count + 1), 0.5);
+        }
+
         dashboard.sendTelemetryPacket(packetPos);
     }
 
@@ -96,5 +114,361 @@ public class Dashboard extends BlocksOpModeCompanion {
     public static float GetOpen() {
         return ServoOpen;
     }
+
+    @ExportToBlocks(
+            parameterLabels = {"X at begining", "Y at begening"}
+    )
+    public static void InitTrajectory (float XtoAdd, float YtoAdd){
+        startedX = XtoAdd/2.54;
+        startedY = YtoAdd/2.54;
+    }
+
+    /*@ExportToBlocks(
+            parameterLabels = {"Xtarget","Ytarget", "X","Y"}
+    )
+    public static void Target_Trajectory_Straight (double Xtarget, double Ytarget, double OrientationTarget, double X, double Y)
+    {
+        TargetRobot.clear();
+        TargetRobot.add(Xtarget / 2.54 + 9);
+        TargetRobot.add(-Ytarget/ 2.54 + 135);
+        TargetRobot.add(OrientationTarget - 90);
+
+        PerfectTrajectory.clear();
+        PerfectTrajectory.add(ToDashboardCoordinate(Y,'Y'));
+        PerfectTrajectory.add(ToDashboardCoordinate(X,'X'));
+
+        if (X < Xtarget)
+        {
+            if (Y < Ytarget)
+            {
+                while (X+3 < Xtarget || Y+3 < Ytarget)
+                {
+                    if (X+3 < Xtarget)
+                    {
+                        X += 3;
+                    }
+                    else
+                    {
+                        X = Xtarget;
+                    }
+
+                    if (Y+3 < Ytarget)
+                    {
+                        Y += 3;
+                    }
+                    else
+                    {
+                        Y = Ytarget;
+                    }
+
+                    PerfectTrajectory.add(ToDashboardCoordinate(Y,'Y'));
+                    PerfectTrajectory.add(ToDashboardCoordinate(X,'X'));
+                }
+            }
+            else
+            {
+                while (X+3 < Xtarget || Y-3 > Ytarget)
+                {
+                    if (X+3 < Xtarget)
+                    {
+                        X += 3;
+                    }
+                    else
+                    {
+                        X = Xtarget;
+                    }
+
+                    if (Y-3 > Ytarget)
+                    {
+                        Y -= 3;
+                    }
+                    else
+                    {
+                        Y = Ytarget;
+                    }
+
+                    PerfectTrajectory.add(ToDashboardCoordinate(Y,'Y'));
+                    PerfectTrajectory.add(ToDashboardCoordinate(X,'X'));
+                }
+            }
+        }
+        else
+        {
+            if (Y < Ytarget)
+            {
+                while (X-3 > Xtarget || Y+3 < Ytarget)
+                {
+                    if (X-3 > Xtarget)
+                    {
+                        X -= 3;
+                    }
+                    else
+                    {
+                        X = Xtarget;
+                    }
+
+                    if (Y+3 < Ytarget)
+                    {
+                        Y += 3;
+                    }
+                    else
+                    {
+                        Y = Ytarget;
+                    }
+
+                    PerfectTrajectory.add(ToDashboardCoordinate(Y,'Y'));
+                    PerfectTrajectory.add(ToDashboardCoordinate(X,'X'));
+                }
+            }
+            else
+            {
+                while (X-3 > Xtarget || Y-3 > Ytarget)
+                {
+                    if (X-3 > Xtarget)
+                    {
+                        X -= 3;
+                    }
+                    else
+                    {
+                        X = Xtarget;
+                    }
+
+                    if (Y-3 > Ytarget)
+                    {
+                        Y -= 3;
+                    }
+                    else
+                    {
+                        Y = Ytarget;
+                    }
+
+                    PerfectTrajectory.add(ToDashboardCoordinate(Y,'Y'));
+                    PerfectTrajectory.add(ToDashboardCoordinate(X,'X'));
+                }
+            }
+        }
+    }*/
+
+    @ExportToBlocks(
+            parameterLabels = {"Xtarget","Ytarget", "X","Y", "Spline"}
+    )
+    public static void Target_Trajectory_Straight (double Xtarget, double Ytarget, double OrientationTarget, double X, double Y, char Spline)
+    {
+        TargetRobot.clear();
+        TargetRobot.add(Xtarget / 2.54 + 9 + startedX);
+        TargetRobot.add(-Ytarget/ 2.54 + 135 - startedY);
+        TargetRobot.add(OrientationTarget - 90);
+
+        PerfectTrajectory.clear();
+        PerfectTrajectory.add(ToDashboardCoordinate(Y,'Y'));
+        PerfectTrajectory.add(ToDashboardCoordinate(X,'X'));
+
+        double Xdistance = Xtarget - X;
+        double Ydistance = Ytarget - Y;
+
+        double NbrOfPoints = 0, Xstep = 0, Ystep = 0;
+
+        if (Math.abs(Xdistance) > Math.abs(Ydistance))
+        {
+            NbrOfPoints = Math.abs(Xdistance/3);
+            if (Xdistance > 0)
+                Xstep = 3;
+            else if (Xdistance < 0)
+                Xstep = -3;
+            Ystep = Ydistance / NbrOfPoints;
+        }
+        else
+        {
+            NbrOfPoints = Ydistance/3;
+            if (Ydistance > 0)
+                Ystep = 3;
+            else if (Ydistance < 0)
+                Ystep = -3;
+            Xstep = Xdistance / NbrOfPoints;
+        }
+
+        if (Spline == 'X')
+        {
+            double coefstep = 2/NbrOfPoints;
+
+            for (int i = 0; i < NbrOfPoints; i++)
+            {
+                double coefX = 2 - i*coefstep;
+                double coefY = i*coefstep;
+
+                X += Xstep*coefX;
+                Y += Ystep*coefY;
+
+                PerfectTrajectory.add(ToDashboardCoordinate(Y,'Y'));
+                PerfectTrajectory.add(ToDashboardCoordinate(X,'X'));
+            }
+        }
+        else if (Spline == 'Y')
+        {
+            double coefstep = 2/NbrOfPoints;
+
+            for (int i = 0; i < NbrOfPoints; i++)
+            {
+                double coefY = 2 - i * coefstep;
+                double coefX = i * coefstep;
+
+                X += Xstep * coefX;
+                Y += Ystep * coefY;
+
+                PerfectTrajectory.add(ToDashboardCoordinate(Y, 'Y'));
+                PerfectTrajectory.add(ToDashboardCoordinate(X, 'X'));
+            }
+        }
+        else
+
+            for (int i = 0; i < NbrOfPoints; i++)
+            {
+                X += Xstep;
+                Y += Ystep;
+
+                PerfectTrajectory.add(ToDashboardCoordinate(Y,'Y'));
+                PerfectTrajectory.add(ToDashboardCoordinate(X,'X'));
+            }
+
+        /*if (Spline == 'X')
+        {
+
+        }
+        else if (Spline == 'Y')
+        {
+
+        }
+        else
+        {
+            if (X < Xtarget)
+            {
+                if (Y < Ytarget)
+                {
+                    while (X+3 < Xtarget || Y+3 < Ytarget)
+                    {
+                        if (X+3 < Xtarget)
+                        {
+                            X += 3;
+                        }
+                        else
+                        {
+                            X = Xtarget;
+                        }
+
+                        if (Y+3 < Ytarget)
+                        {
+                            Y += 3;
+                        }
+                        else
+                        {
+                            Y = Ytarget;
+                        }
+
+                        PerfectTrajectory.add(ToDashboardCoordinate(Y,'Y'));
+                        PerfectTrajectory.add(ToDashboardCoordinate(X,'X'));
+                    }
+                }
+                else
+                {
+                    while (X+3 < Xtarget || Y-3 > Ytarget)
+                    {
+                        if (X+3 < Xtarget)
+                        {
+                            X += 3;
+                        }
+                        else
+                        {
+                            X = Xtarget;
+                        }
+
+                        if (Y-3 > Ytarget)
+                        {
+                            Y -= 3;
+                        }
+                        else
+                        {
+                            Y = Ytarget;
+                        }
+
+                        PerfectTrajectory.add(ToDashboardCoordinate(Y,'Y'));
+                        PerfectTrajectory.add(ToDashboardCoordinate(X,'X'));
+                    }
+                }
+            }
+            else
+            {
+                if (Y < Ytarget)
+                {
+                    while (X-3 > Xtarget || Y+3 < Ytarget)
+                    {
+                        if (X-3 > Xtarget)
+                        {
+                            X -= 3;
+                        }
+                        else
+                        {
+                            X = Xtarget;
+                        }
+
+                        if (Y+3 < Ytarget)
+                        {
+                            Y += 3;
+                        }
+                        else
+                        {
+                            Y = Ytarget;
+                        }
+
+                        PerfectTrajectory.add(ToDashboardCoordinate(Y,'Y'));
+                        PerfectTrajectory.add(ToDashboardCoordinate(X,'X'));
+                    }
+                }
+                else
+                {
+                    while (X-3 > Xtarget || Y-3 > Ytarget)
+                    {
+                        if (X-3 > Xtarget)
+                        {
+                            X -= 3;
+                        }
+                        else
+                        {
+                            X = Xtarget;
+                        }
+
+                        if (Y-3 > Ytarget)
+                        {
+                            Y -= 3;
+                        }
+                        else
+                        {
+                            Y = Ytarget;
+                        }
+
+                        PerfectTrajectory.add(ToDashboardCoordinate(Y,'Y'));
+                        PerfectTrajectory.add(ToDashboardCoordinate(X,'X'));
+                    }
+                }
+            }
+        }*/
+    }
+
+    public static double ToDashboardCoordinate (double coord, char axe)
+    {
+        double result = 0;
+        if (axe == 'Y')
+        {
+            result = coord/2.54 - 63 + startedY;
+        }
+        else if (axe == 'X')
+        {
+            result = -coord/2.54 + 63 - startedX;
+        }
+
+        return result;
+    }
+
 }
+
+
 
