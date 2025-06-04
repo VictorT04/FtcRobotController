@@ -25,6 +25,8 @@ public class Dashboard extends BlocksOpModeCompanion {
 
     public static boolean RobotImage = true;
 
+    static int count = 0;
+
 
     @ExportToBlocks(
             parameterLabels = {}
@@ -64,33 +66,36 @@ public class Dashboard extends BlocksOpModeCompanion {
             parameterLabels = {"X", "Y", "orientation"}
     )
     public static void Trajectory(double X, double Y, double orientation) {
-        TelemetryPacket packetPos = new TelemetryPacket();
+        count++;
 
-        if (RobotImage)
-        {
-            packetPos.fieldOverlay()
-                    .drawImage("/Robot.png", X / 2.54 + 9 + startedX, -Y / 2.54 + 135 - startedY, 18, 18, Math.toRadians(orientation - 90), 9, 9, true);
+        if (count >= 10) {
+            TelemetryPacket packetPos = new TelemetryPacket();
 
-            packetPos.fieldOverlay()
-                    .drawImage("/TargetRobot.png",TargetRobot.get(0), TargetRobot.get(1), 18, 18, Math.toRadians(orientation - 90), 9, 9, true);
+            RobotTrajectory.add(ToDashboardCoordinate(Y, 'Y'));
+            RobotTrajectory.add(ToDashboardCoordinate(X, 'X'));
+
+            for (int count = 0; count < RobotTrajectory.size(); count += 2) {
+                packetPos.fieldOverlay()
+                        .setFill("blue")
+                        .fillCircle(RobotTrajectory.get(count), RobotTrajectory.get(count + 1), 0.5);
+            }
+
+            for (int count = 0; count < PerfectTrajectory.size(); count += 2) {
+                packetPos.fieldOverlay()
+                        .setFill("green")
+                        .fillCircle(PerfectTrajectory.get(count), PerfectTrajectory.get(count + 1), 0.5);
+            }
+
+            if (RobotImage) {
+                packetPos.fieldOverlay()
+                        .drawImage("/TargetRobot.png", TargetRobot.get(0), TargetRobot.get(1), 18, 18, Math.toRadians(TargetRobot.get(2)), 9, 9, true);
+
+                packetPos.fieldOverlay()
+                        .drawImage("/Robot.png", X / 2.54 + 9 + startedX, -Y / 2.54 + 135 - startedY, 18, 18, Math.toRadians(orientation + 90), 9, 9, true);
+            }
+
+            dashboard.sendTelemetryPacket(packetPos);
         }
-
-        RobotTrajectory.add(ToDashboardCoordinate(Y,'Y'));
-        RobotTrajectory.add(ToDashboardCoordinate(X,'X'));
-
-        for (int count = 0; count < RobotTrajectory.size(); count += 2) {
-            packetPos.fieldOverlay()
-                    .setFill("blue")
-                    .fillCircle(RobotTrajectory.get(count), RobotTrajectory.get(count + 1), 0.5);
-        }
-
-        for (int count = 0; count < PerfectTrajectory.size(); count += 2) {
-            packetPos.fieldOverlay()
-                    .setFill("green")
-                    .fillCircle(PerfectTrajectory.get(count), PerfectTrajectory.get(count + 1), 0.5);
-        }
-
-        dashboard.sendTelemetryPacket(packetPos);
     }
 
     @ExportToBlocks(
@@ -121,17 +126,21 @@ public class Dashboard extends BlocksOpModeCompanion {
     public static void InitTrajectory (float XtoAdd, float YtoAdd){
         startedX = XtoAdd/2.54;
         startedY = YtoAdd/2.54;
+
+        TargetRobot.add(0.0);
+        TargetRobot.add(0.0);
+        TargetRobot.add(0.0);
     }
 
     @ExportToBlocks(
-            parameterLabels = {"Xtarget","Ytarget", "X","Y", "Spline"}
+            parameterLabels = {"Xtarget","Ytarget", "Orientation Target", "X","Y", "Spline"}
     )
-    public static void Target_Trajectory_Straight (double Xtarget, double Ytarget, double OrientationTarget, double X, double Y, char Spline)
+    public static void Target_Trajectory (double Xtarget, double Ytarget, double OrientationTarget, double X, double Y, char Spline)
     {
         TargetRobot.clear();
         TargetRobot.add(Xtarget / 2.54 + 9 + startedX);
         TargetRobot.add(-Ytarget/ 2.54 + 135 - startedY);
-        TargetRobot.add(OrientationTarget - 90);
+        TargetRobot.add(OrientationTarget + 90);
 
         PerfectTrajectory.clear();
         PerfectTrajectory.add(ToDashboardCoordinate(Y,'Y'));
