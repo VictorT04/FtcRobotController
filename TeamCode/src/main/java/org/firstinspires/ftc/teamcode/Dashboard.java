@@ -19,7 +19,7 @@ public class Dashboard extends BlocksOpModeCompanion {
 
     public static ArrayList<Double> PerfectTrajectory = new ArrayList<>(), TargetRobot = new ArrayList<>();
 
-    public static float ServoLeft = 0, ServoRight = 0,ServoOpen = 0;
+    public static float ServoLeft = 0, ServoRight = 0,ServoOpen = 0, Consigne = 0;
 
     public static double startedX, startedY;
 
@@ -118,6 +118,13 @@ public class Dashboard extends BlocksOpModeCompanion {
     )
     public static float GetOpen() {
         return ServoOpen;
+    }
+
+    @ExportToBlocks(
+            parameterLabels = {}
+    )
+    public static float GetConsigne() {
+        return Consigne;
     }
 
     @ExportToBlocks(
