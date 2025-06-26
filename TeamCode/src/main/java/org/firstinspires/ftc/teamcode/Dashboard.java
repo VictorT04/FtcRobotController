@@ -19,7 +19,7 @@ public class Dashboard extends BlocksOpModeCompanion {
 
     public static ArrayList<Double> PerfectTrajectory = new ArrayList<>(), TargetRobot = new ArrayList<>();
 
-    public static float ServoLeft = 0, ServoRight = 0,ServoOpen = 0, Consigne = 0;
+    public static float a = 0, b = 0,c = 0, d = 0, e = 0, f = 0, g = 0, h = 0, i = 0, j = 0;
 
     public static double startedX, startedY;
 
@@ -101,30 +101,65 @@ public class Dashboard extends BlocksOpModeCompanion {
     @ExportToBlocks(
             parameterLabels = {}
     )
-    public static float GetLeft() {
-        return ServoLeft;
+    public static float A() {
+        return a;
     }
 
     @ExportToBlocks(
             parameterLabels = {}
     )
-    public static float GetRight() {
-        return ServoRight;
+    public static float B() {
+        return b;
     }
 
 
     @ExportToBlocks(
             parameterLabels = {}
     )
-    public static float GetOpen() {
-        return ServoOpen;
+    public static float C() {
+        return c;
     }
 
     @ExportToBlocks(
             parameterLabels = {}
     )
-    public static float GetConsigne() {
-        return Consigne;
+    public static float D() {
+        return d;
+    }
+
+    @ExportToBlocks(
+            parameterLabels = {}
+    )
+    public static float E() {
+        return e;
+    }
+
+    @ExportToBlocks(
+            parameterLabels = {}
+    )
+    public static float F() {
+        return f;
+    }
+
+    @ExportToBlocks(
+            parameterLabels = {}
+    )
+    public static float G() {
+        return g;
+    }
+
+    @ExportToBlocks(
+            parameterLabels = {}
+    )
+    public static float H() {
+        return h;
+    }
+
+    @ExportToBlocks(
+            parameterLabels = {}
+    )
+    public static float I() {
+        return j;
     }
 
     @ExportToBlocks(
